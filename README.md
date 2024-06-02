@@ -66,19 +66,19 @@ MealMate is a full-stack web application designed to connect clients with local 
     `NOTE:` create the directory if it doesn't exist with `mkdir ~/public_html`
 1) Clone the repo
     ```BASH
-    git clone https://github.students.cs.ubc.ca/CPSC304-2023W-T2/project_g2s9q_j4l7q_y6y5s.git
+    git clone https://github.com/TeaBreeze00/MealMate.git
     ```
 1) Set executable permissions for php files in pages folder of project
     ```BASH
-    chmod -R 711  ~/public_html/project_g2s9q_j4l7q_y6y5s/project/pages
+    chmod -R 711  ~/fileLocation/MealMate
     ```
 1) Create config.php file in project directory for database credentials
     ```BASH
-   touch ~/public_html/project_g2s9q_j4l7q_y6y5s/project/config.php
+   touch ~/fileLocation/MealMate/config.php
     ```
 1) Modify the config.php file using nano
     ```BASH
-    nano ~/public_html/project_g2s9q_j4l7q_y6y5s/project/config.php
+    nano ~/public_html/MealMate/project/config.php
     ```
 1) Copy paste the following code and change CWL, student number to appropriate values
     ```PHP
@@ -98,7 +98,7 @@ MealMate is a full-stack web application designed to connect clients with local 
     1) `Ctrl + x`
 1) The site should now be public at the link below with your CWL
     ```txt
-    https://www.students.cs.ubc.ca/~CWL/project_g2s9q_j4l7q_y6y5s/project/pages/login.php
+    https://www.students.cs.ubc.ca/~CWL/MealMate/project/pages/login.php
     ```
 1) For updating the files simply pull the latest files from github
 

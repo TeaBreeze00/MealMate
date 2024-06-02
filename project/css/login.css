@@ -1,0 +1,9 @@
+body {
+    background-image: url('../diagrams/login_background.webp');
+    background-size: cover;       /* Ensures the image covers the entire background */
+    background-position: center;  /* Centers the background image */
+    background-repeat: no-repeat; /* Prevents the image from repeating */
+    margin: 0;                    /* Removes default margin */
+    height: 100vh;                /* Ensures body takes full viewport height */
+    width: 100vw;                 /* Ensures body takes full viewport width */
+}

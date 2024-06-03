@@ -1,6 +1,7 @@
 <?php
 session_start();
 include "../utils.php";
+//This page is common for users, vendors and delivery personnels
 
 session_start();
 
@@ -54,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .top-bar .logo {
-            height: 50px; /* Adjust the height as needed */
+            height: 50px; 
             width: auto;
         }
 
@@ -62,7 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 80px; /* Adjust to position below the top bar */
+            margin-top: 80px; 
             padding: 20px;
             background-color: white;
             border-radius: 8px;
@@ -76,18 +77,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 10px;
             border: none;
             background-color: #d3d3d3;
-            border-radius: 8px; /* Smoother border */
+            border-radius: 8px; 
             box-sizing: border-box;
         }
 
         .container input[type="submit"] {
-            width: 300px; /* Same width as the text box */
+            width: 300px; 
             height: 40px;
             padding: 10px;
             background-color: black;
             color: white;
             border: none;
-            border-radius: 8px; /* Smoother border */
+            border-radius: 8px; 
             cursor: pointer;
             font-size: 14px;
             box-sizing: border-box;

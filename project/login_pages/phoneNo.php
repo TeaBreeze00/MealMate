@@ -1,34 +1,60 @@
 <?php
+
 session_start();
 include "../utils.php";
-//This page is common for users, vendors and delivery personnels
+function isValidPhone($phone) {
+    return filter_var($phone, FILTER_VALIDATE_EMAIL);
+}
 
-session_start();
+function generateVerificationCode() {
+    return rand(100000, 999999);
+}
 
-function isValidVerificationCode($verification_code) {
-  if (!isset($_SESSION['verification_code'])) {
-    return false; 
-  }
-  $generated_code = $_SESSION['verification_code'];
-  return $generated_code == $verification_code;
+function phoneExists($email){
+    if (connectToDB()) {
+        $result = executePlainSQL("SELECT * FROM CLIENT WHERE EMAIL = '{$email}'");
+        oci_commit($db_conn);
+        disconnectFromDB();
+        return $result != null;
+    }
+}
+
+function sendVerificationSms($phone, $code) {
+    
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $verification_code = $_POST['verification_code']; 
+    $phone = $_POST['phone'];
 
-  if (isValidVerificationCode($verification_code)) {
-    header("Location: phoneNo.php");
-    exit; 
-  } else {
-    echo "Incorrect! Please enter the valid verification code";
-  }
+    if (isValidPhone($phone)) {
+        
+        if(phoneExists($phone)){  //this is currently not working because the database doesn't exist
+            echo "Phone Number already exists, Please login with your credentials";
+            header("Location: login.php");
+            exit();
+        }
+
+        $verificationCode = generateVerificationCode();
+        if (sendVerificationSms($phone, $verificationCode)) {
+            $_SESSION['verification_code'] = $verificationCode;
+            $_SESSION['phone'] = $phone;
+            header("Location: phone_authentication.php");
+            exit();
+        } else {
+            echo "Failed to send verification email.";
+        }
+    } else {
+        echo "Invalid phone number";
+    }
 }
+
+
 ?>
 
 <html>
 
 <head>
-<title>MealMate</title>
+<title>MealMate | Enter your phone number</title>
 
 <style>
         body, html {
@@ -104,12 +130,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
   <div class = "container">
-    <p> Enter the 6 digit verification code sent to you at your email</p>
+    <p> Let's get started</p>
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <input type="text" name="verification_code" placeholder="Enter verification code">
+        <input type="text" name="phone" placeholder="Enter your phone no. (required)">
         <input type="submit" value="Continue">
     </form>
+
     </div>
+
 </body>
 
 </html>

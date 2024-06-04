@@ -5,24 +5,7 @@ include "../utils.php";
 
 session_start();
 
-function isValidVerificationCode($verification_code) {
-  if (!isset($_SESSION['verification_code'])) {
-    return false; 
-  }
-  $generated_code = $_SESSION['verification_code'];
-  return $generated_code == $verification_code;
-}
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $verification_code = $_POST['verification_code']; 
-
-  if (isValidVerificationCode($verification_code)) {
-    header("Location: phoneNo.php");
-    exit; 
-  } else {
-    echo "Incorrect! Please enter the valid verification code";
-  }
-}
 ?>
 
 <html>
@@ -104,12 +87,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </div>
 
   <div class = "container">
-    <p> Enter the 6 digit verification code sent to you at your email</p>
+    <p> Let's get started</p>
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <input type="text" name="verification_code" placeholder="Enter verification code">
+        <input type="text" name="name" placeholder="Enter your name (required)">
+        <input type="text" name="address" placeholder="Enter your address (required)">
+        <p> Upload your profile photo</p>
+        <label for="fileToUpload">Select image to upload:</label>
+        <input type="file" name="fileToUpload" id="fileToUpload">
         <input type="submit" value="Continue">
     </form>
+
     </div>
+
 </body>
 
 </html>

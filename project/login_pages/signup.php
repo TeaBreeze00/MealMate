@@ -9,6 +9,15 @@ function generateVerificationCode() {
     return rand(100000, 999999);
 }
 
+function emailExists($email){
+    if (connectToDB()) {
+        $result = executePlainSQL("SELECT * FROM CLIENT WHERE EMAIL = '{$email}'");
+        oci_commit($db_conn);
+        disconnectFromDB();
+        return $result != null;
+    }
+}
+
 function sendVerificationEmail($email, $code) {
     $subject = "Your Verification Code";
     $message = "Your verification code is: " . $code;
@@ -25,6 +34,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
 
     if (isValidEmail($email)) {
+        
+        if(emailExists($email)){  //this is currently not working because the database doesn't exist
+            echo "Email already exists, Please login with your credentials";
+            header("Location: login.php");
+            exit();
+        }
+
         $verificationCode = generateVerificationCode();
         if (sendVerificationEmail($email, $verificationCode)) {
             $_SESSION['verification_code'] = $verificationCode;

@@ -57,7 +57,7 @@ MealMate is a full-stack web application designed to connect clients with local 
     ```BASH
     scp ./project/$file_ext $CWL@remote.students.cs.ubc.ca:/home/a/$CWL/public_html
     ```
-### Setting up the project (for group members) ✔
+### Setting up the project
 1) SSH into cs dep servers
 1) Go to ~/public_html directory
     ```BASH
@@ -104,7 +104,7 @@ MealMate is a full-stack web application designed to connect clients with local 
 
 ---
 ## BUGS
-1) Login page: passport number=1000000, email=john.doe@gmail.com , password=ilikefrogs
+
 ---
 ## LINKS 🚪
 - [SQL Plus on dep servers](https://www.students.cs.ubc.ca/~cs-304/resources/sql-plus-resources/sql-plus-setup.html)

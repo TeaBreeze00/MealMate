@@ -91,6 +91,7 @@ session_start();
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <input type="text" name="name" placeholder="Enter your name (required)">
         <input type="text" name="address" placeholder="Enter your address (required)">
+        <input type="text" name="phoneNo" placeholder="Enter your number (required)">
         <p> Upload your profile photo</p>
         <label for="fileToUpload">Select image to upload:</label>
         <input type="file" name="fileToUpload" id="fileToUpload">

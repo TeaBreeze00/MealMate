@@ -1,7 +1,7 @@
 <?php
 session_start();
 include "../utils.php";
-//This page is common for users, vendors and delivery personnels
+
 
 session_start();
 

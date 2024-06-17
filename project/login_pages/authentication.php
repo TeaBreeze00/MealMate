@@ -17,7 +17,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $verification_code = $_POST['verification_code']; 
 
   if (isValidVerificationCode($verification_code)) {
-    header("Location: phoneNo.php");
+    header("Location: welcome.php");
     exit; 
   } else {
     echo "Incorrect! Please enter the valid verification code";

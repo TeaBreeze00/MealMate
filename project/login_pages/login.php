@@ -1,4 +1,46 @@
+<?php
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+include "../../utils.php";
+
+function isValidEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
+
+
+function emailExists($email){
+    if (connectToDB()) {
+        //remove this
+        echo "connect to DB success"
+        $result = executePlainSQL("SELECT * FROM CUSTOMER WHERE EMAIL = '{$email}'");
+        oci_commit($db_conn);
+        return $result != null;
+    }
+}
+
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = $_POST['email/phone'];
+
+    if (isValidEmail($email)) {
+        
+        if(emailExists($email)){  //this is currently not working because the database doesn't exist
+            echo "Success";
+            // header("Location: ../user_pages/user_homepage.php");
+            disconnectFromDB();
+            exit();
+        }
+
+        
+    } else {
+        echo "Invalid email address.";
+    }
+}
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -154,7 +196,7 @@
 
 
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <input type="text" name="passport_number" placeholder="Enter phone number or email">
+        <input type="text" name="email/phone" placeholder="Enter email">
         <input type="submit" value="Continue">
     </form>
     

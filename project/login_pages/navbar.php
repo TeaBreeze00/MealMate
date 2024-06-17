@@ -1,3 +1,4 @@
+<!-- Here redirect to login/signup for users happen here-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MealMate | Tiffin Delivery Simplified</title>
     <link rel="stylesheet" href="../css/reset.css">
-    <link rel="stylesheet" href="../css/navbar.css"> <!-- Link to your CSS file for navbar -->
+    <link rel="stylesheet" href="../css/navbar.css"> 
     <style>
         body, html {
             margin: 0;

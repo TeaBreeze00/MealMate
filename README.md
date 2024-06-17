@@ -102,9 +102,15 @@ MealMate is a full-stack web application designed to connect clients with local 
     ```
 1) For updating the files simply pull the latest files from github
 
+Note
+- DO NOT set the executable command for the entire directory at once, it is recursive and WILL be applied to all at once
+- The executable command for the photos is chmod 644, nothing else renders the photos
+
 ---
 ## BUGS
+- The backend for the login.php page is still not handled properly
 
+- Give credit to google documentation and Apple documentation for the Google and Apple buttons, implementation still not done, to be followed later
 ---
 ## LINKS 🚪
 - [SQL Plus on dep servers](https://www.students.cs.ubc.ca/~cs-304/resources/sql-plus-resources/sql-plus-setup.html)

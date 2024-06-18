@@ -1,5 +1,4 @@
 <?php
-
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -11,36 +10,45 @@ function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-
 function emailExists($email){
+    global $db_conn;
     if (connectToDB()) {
-        //remove this
-        echo "connect to DB success"
+        echo "connect to DB success"; // Added missing semicolon
         $result = executePlainSQL("SELECT * FROM CUSTOMER WHERE EMAIL = '{$email}'");
-        oci_commit($db_conn);
-        return $result != null;
+        if ($result) {
+            $row = oci_fetch_array($result, OCI_ASSOC);
+            disconnectFromDB();
+            return $row != false;
+        } else {
+            echo "Database query failed.";
+            disconnectFromDB();
+            return false;
+        }
+    } else {
+        echo "Database connection failed.";
+        return false;
     }
 }
-
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
 
     if (isValidEmail($email)) {
-        
-        if(emailExists($email)){  //this is currently not working because the database doesn't exist
+        if (emailExists($email)) {
             echo "Success";
             // header("Location: ../user_pages/user_homepage.php");
             disconnectFromDB();
             exit();
+        } else {
+            echo "Email does not exist.";
         }
-
-        
     } else {
         echo "Invalid email address.";
     }
 }
-?>
+?> 
+
+
 
 <!DOCTYPE html>
 <html lang="en">

@@ -105,6 +105,7 @@ MealMate is a full-stack web application designed to connect clients with local 
 Note
 - DO NOT set the executable command for the entire directory at once, it is recursive and WILL be applied to all at once
 - The executable command for the photos is chmod 644, nothing else renders the photos
+- You have to run the initial setup once before anything else to actually create a directory in your personal Oracle server
 
 ---
 ## BUGS

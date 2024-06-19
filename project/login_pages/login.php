@@ -13,43 +13,57 @@ function isValidEmail($email) {
 function emailExists($email){
     global $db_conn;
     if (connectToDB()) {
-        echo "connect to DB success"; // Added missing semicolon
-        $result = executePlainSQL("SELECT * FROM CUSTOMER WHERE EMAIL = '{$email}'");
-        if ($result) {
-            $row = oci_fetch_array($result, OCI_ASSOC);
-            disconnectFromDB();
-            return $row != false;
+        echo "Connected to DB successfully.<br>"; // Debug message
+        $escaped_email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+        $query = "SELECT * FROM CUSTOMER WHERE EMAIL = :email";
+        $statement = oci_parse($db_conn, $query);
+        oci_bind_by_name($statement, ':email', $escaped_email);
+
+        if (oci_execute($statement)) {
+            if ($row = oci_fetch_array($statement, OCI_ASSOC)) {
+                echo "Email exists in the database.<br>"; // Debug message
+                oci_free_statement($statement);
+                disconnectFromDB();
+                return true;
+            } else {
+                echo "Email does not exist in the database.<br>"; // Debug message
+                oci_free_statement($statement);
+                disconnectFromDB();
+                return false;
+            }
         } else {
-            echo "Database query failed.";
+            echo "Database query execution failed.<br>"; // Debug message
+            oci_free_statement($statement);
             disconnectFromDB();
             return false;
         }
     } else {
-        echo "Database connection failed.";
+        echo "Database connection failed.<br>"; // Debug message
         return false;
     }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
+    
+    echo "Form submitted.<br>"; // Debug message
+    echo "Email entered: $email<br>"; // Debug message
 
     if (isValidEmail($email)) {
+        echo "Email is valid.<br>"; // Debug message
+
         if (emailExists($email)) {
-            echo "Success";
-            // header("Location: ../user_pages/user_homepage.php");
-            disconnectFromDB();
+            echo "Redirecting to user homepage.<br>"; // Debug message
+            header("Location: ../user_pages/user_homepage.php");
             exit();
         } else {
-            echo "Email does not exist.";
+            echo "Email does not exist.<br>"; // Debug message
         }
     } else {
-        echo "Invalid email address.";
+        echo "Invalid email address.<br>"; // Debug message
     }
 }
-?> 
-
-
-
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,12 +71,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MealMate</title>
     <link rel="stylesheet" href="../css/reset.css">
-
     <meta name="appleid-signin-client-id" content="[CLIENT_ID]">
     <meta name="appleid-signin-scope" content="[SCOPES]">
     <meta name="appleid-signin-redirect-uri" content="[REDIRECT_URI]">
     <meta name="appleid-signin-state" content="[STATE]">
-
     <style>
         body, html {
             margin: 0;
@@ -88,47 +100,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .top-bar .logo {
-            height: 50px; /* Adjust the height as needed */
+            height: 50px; 
             width: auto;
         }
-
+        
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 80px; /* Adjust to position below the top bar */
+            margin-top: 80px;
             padding: 20px;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-
         .or-divider {
-            width: 300px; /* Same width as buttons */
+            width: 300px;
             display: flex;
             align-items: center;
             text-align: center;
             margin: 20px 0;
         }
-
         .or-divider hr {
             flex: 1;
             border: none;
             border-top: 1px solid #ccc;
             margin: 0;
         }
-
         .or-divider span {
             padding: 0 10px;
             color: #999;
         }
-
         .container p {
             margin: 0 0 20px;
             text-align: left;
-            width: 300px; /* Align text with input and button */
+            width: 300px;
         }
-
         .container input[type="text"] {
             width: 300px;
             height: 40px;
@@ -136,50 +143,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 10px;
             border: none;
             background-color: #d3d3d3;
-            border-radius: 8px; /* Smoother border */
+            border-radius: 8px;
             box-sizing: border-box;
         }
-
         .container input[type="submit"] {
-            width: 300px; /* Same width as the text box */
+            width: 300px;
             height: 40px;
             padding: 10px;
             background-color: black;
             color: white;
             border: none;
-            border-radius: 8px; /* Smoother border */
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             box-sizing: border-box;
             margin-bottom: 10px;
         }
-
         .gsi-material-button {
-            width: 300px; /* Same width as the text box and submit button */
+            width: 300px;
             height: 40px;
             padding: 0 10px;
             background-color: #d3d3d3;
             border: none;
             color: black;
-            border-radius: 8px; /* Smoother border */
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            gap: 10px; /* Space between icon and text */
+            gap: 10px;
         }
-
         .gsi-material-button .gsi-material-button-icon {
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
         .apple-signin-button {
-            width: 300px; /* Same width as other buttons */
-            height: 40px; /* Same height as other buttons */
+            width: 300px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -190,7 +193,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-sizing: border-box;
             margin-top: 10px;
         }
-
     </style>
 </head>
 <body>
@@ -201,19 +203,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <div class="container">
     <p>What's your phone number or email?</p>
-
-
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <input type="text" name="email/phone" placeholder="Enter email">
         <input type="submit" value="Continue">
     </form>
-    
-
     <div class="or-divider">
         <hr><span>or</span><hr>
     </div>
-    
-
     <button class="gsi-material-button">
         <div class="gsi-material-button-icon">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block; height: 24px; width: 24px;">
@@ -226,13 +222,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <span class="gsi-material-button-contents">Continue with Google</span>
     </button>
-    
     <div id="appleid-signin" class="apple-signin-button" data-color="#d3d3d3" data-border="false" data-type="sign-in"></div>
-    </div>
-    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
-
 </div>
-
+<script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
 </body>
 </html>
 

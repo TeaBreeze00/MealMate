@@ -1,7 +1,7 @@
 <?php
 session_start();
 include "../utils.php";
-
+include "navbar.html";
 ?>
 
 <html>

@@ -1,4 +1,4 @@
-<?php include 'navbar.php'; ?>
+<?php include 'navbar.html'; ?>
 
 <!-- This is the begining of the website welcome page, login, signup options for users, registering vendors, registering delivery personnel happens here-->
 <!DOCTYPE html>

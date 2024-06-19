@@ -1,21 +1,18 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
-include "../utils.php";
+include "../../utils.php";
+
+
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
 function generateVerificationCode() {
     return rand(100000, 999999);
-}
-
-function emailExists($email){
-    if (connectToDB()) {
-        $result = executePlainSQL("SELECT * FROM CLIENT WHERE EMAIL = '{$email}'");
-        oci_commit($db_conn);
-        disconnectFromDB();
-        return $result != null;
-    }
 }
 
 function sendVerificationEmail($email, $code) {
@@ -30,33 +27,58 @@ function sendVerificationEmail($email, $code) {
     }
 }
 
+function emailExists($email){
+    global $db_conn;
+    if (connectToDB()) {
+        echo "connect to DB success"; 
+        $result = executePlainSQL("SELECT * FROM CUSTOMER WHERE EMAIL = '{$email}'");
+        if ($result) {
+            $row = oci_fetch_array($result, OCI_ASSOC);
+            disconnectFromDB();
+            return $row != false;
+        } else {
+            echo "Database query failed.";
+            disconnectFromDB();
+            return false;
+        }
+    } else {
+        echo "Database connection failed.";
+        return false;
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
 
     if (isValidEmail($email)) {
-        
-        if(emailExists($email)){  //this is currently not working because the database doesn't exist
-            echo "Email already exists, Please login with your credentials";
-            header("Location: login.php");
-            exit();
-        }
 
-        $verificationCode = generateVerificationCode();
-        if (sendVerificationEmail($email, $verificationCode)) {
+        if (!emailExists($email)) {
+
+            echo "Email does not exist.";
+            
+            $verificationCode = generateVerificationCode();
+
+            if (sendVerificationEmail($email, $verificationCode)) {
             $_SESSION['verification_code'] = $verificationCode;
             $_SESSION['email'] = $email;
             header("Location: authentication.php");
             exit();
-        } else {
+            } else {
             echo "Failed to send verification email.";
+            }
+
+        } else {
+            echo "Email is in our system already. Please login";
+            header("Location: login.php");
         }
     } else {
         echo "Invalid email address.";
     }
 }
 
+?> 
 
-?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -96,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .top-bar .logo {
-            height: 50px; /* Adjust the height as needed */
+            height: 50px; 
             width: auto;
         }
 
@@ -207,8 +229,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <img src="../diagrams/logo.png" alt="Logo" class="logo">
 </div>
 
+
 <div class="container">
-    <p>What's your email?</p>
+    <p>What's your phone number or email?</p>
 
 
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
@@ -243,6 +266,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 </body>
 </html>
+
+
+
+
+
 
 
 

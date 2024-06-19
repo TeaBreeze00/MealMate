@@ -1,7 +1,8 @@
 <?php
 session_start();
 include "../utils.php";
-include "navbar.html";
+
+
 ?>
 
 <html>
@@ -88,9 +89,7 @@ include "navbar.html";
         <input type="text" name="name" placeholder="Enter your name (required)">
         <input type="text" name="address" placeholder="Enter your address (required)">
         <input type="text" name="phoneNo" placeholder="Enter your number (required)">
-        <p> Upload your profile photo</p>
-        <label for="fileToUpload">Select image to upload:</label>
-        <input type="file" name="fileToUpload" id="fileToUpload">
+        <input type="text" name="password" placeholder="Enter your password (required)">
         <input type="submit" value="Continue">
     </form>
 

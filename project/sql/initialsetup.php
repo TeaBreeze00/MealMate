@@ -27,6 +27,7 @@ function handleGenerateTables() {
             Name VARCHAR2(100),
             Address VARCHAR2(100),
             Email VARCHAR2(100),
+            password VARCHAR(255) NOT NULL,
             PhoneNo VARCHAR2(15)
         )",
         "CREATE TABLE Orders (
@@ -44,12 +45,16 @@ function handleGenerateTables() {
             vendorID INT PRIMARY KEY,
             name VARCHAR2(100),
             address VARCHAR2(255),
+            Email VARCHAR2(100),
             cuisineType VARCHAR2(50),
+            password VARCHAR(255) NOT NULL,
             contactNo VARCHAR2(15)
         )",
         "CREATE TABLE DeliveryPersonnel (
             DeliveryPersonId INT PRIMARY KEY,
             name VARCHAR2(100),
+            Email VARCHAR2(100),
+            password VARCHAR(255) NOT NULL,
             contactNo VARCHAR2(15)
         )",
         "CREATE TABLE Vehicle (

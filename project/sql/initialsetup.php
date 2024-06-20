@@ -134,11 +134,11 @@ function handleResetTables() {
 function handleInsertAll() {
     $insertCommands = [
         // Customer
-        "INSERT INTO Customer (custID, Name, Address, Email, PhoneNo) VALUES (1, 'Alice', '123 Main St', 'alice@example.com', '1234567890')",
-        "INSERT INTO Customer (custID, Name, Address, Email, PhoneNo) VALUES (2, 'Bob', '456 Elm St', 'bob@example.com', '0987654321')",
-        "INSERT INTO Customer (custID, Name, Address, Email, PhoneNo) VALUES (3, 'Carol', '789 Oak St', 'carol@example.com', '1231231234')",
-        "INSERT INTO Customer (custID, Name, Address, Email, PhoneNo) VALUES (4, 'David', '321 Pine St', 'david@example.com', '9879879876')",
-        "INSERT INTO Customer (custID, Name, Address, Email, PhoneNo) VALUES (5, 'Eve', '654 Cedar St', 'eve@example.com', '4564564567')",
+        "INSERT INTO Customer (custID, Name, Address, Email, password, PhoneNo) VALUES (1, 'Alice', '123 Main St', 'alice@example.com', 'hashed_password1', '1234567890')",
+        "INSERT INTO Customer (custID, Name, Address, Email, password, PhoneNo) VALUES (2, 'Bob', '456 Elm St', 'bob@example.com', 'hashed_password2', '0987654321')",
+        "INSERT INTO Customer (custID, Name, Address, Email, password, PhoneNo) VALUES (3, 'Carol', '789 Oak St', 'carol@example.com', 'hashed_password3', '1231231234')",
+        "INSERT INTO Customer (custID, Name, Address, Email, password, PhoneNo) VALUES (4, 'David', '321 Pine St', 'david@example.com', 'hashed_password4', '9879879876')",
+        "INSERT INTO Customer (custID, Name, Address, Email, password, PhoneNo) VALUES (5, 'Eve', '654 Cedar St', 'eve@example.com', 'hashed_password5', '4564564567')",
 
         // Orders
         "INSERT INTO Orders (orderID, OrderDate, DeliveryAddress) VALUES (1, TO_DATE('2023-06-01', 'YYYY-MM-DD'), '123 Main St')",
@@ -155,18 +155,18 @@ function handleInsertAll() {
         "INSERT INTO MenuItem (itemID, name, description, price) VALUES (5, 'Soda', 'A refreshing soda', 1.99)",
 
         // Vendor
-        "INSERT INTO Vendor (vendorID, name, address, cuisineType, contactNo) VALUES (1, 'Fast Food Inc', '123 Burger Ln', 'Fast Food', '1112223333')",
-        "INSERT INTO Vendor (vendorID, name, address, cuisineType, contactNo) VALUES (2, 'Pizza Place', '456 Pizza St', 'Italian', '2223334444')",
-        "INSERT INTO Vendor (vendorID, name, address, cuisineType, contactNo) VALUES (3, 'Healthy Eats', '789 Salad Blvd', 'Health Food', '3334445555')",
-        "INSERT INTO Vendor (vendorID, name, address, cuisineType, contactNo) VALUES (4, 'Pasta Palace', '321 Pasta Rd', 'Italian', '4445556666')",
-        "INSERT INTO Vendor (vendorID, name, address, cuisineType, contactNo) VALUES (5, 'Drink Depot', '654 Soda Ave', 'Beverages', '5556667777')",
+        "INSERT INTO Vendor (vendorID, name, address, Email, cuisineType, password, contactNo) VALUES (1, 'Fast Food Inc', '123 Burger Ln', 'fastfood@example.com', 'Fast Food', 'hashed_password1', '1112223333')",
+        "INSERT INTO Vendor (vendorID, name, address, Email, cuisineType, password, contactNo) VALUES (2, 'Pizza Place', '456 Pizza St', 'pizzaplace@example.com', 'Italian', 'hashed_password2', '2223334444')",
+        "INSERT INTO Vendor (vendorID, name, address, Email, cuisineType, password, contactNo) VALUES (3, 'Healthy Eats', '789 Salad Blvd', 'healthyeats@example.com', 'Health Food', 'hashed_password3', '3334445555')",
+        "INSERT INTO Vendor (vendorID, name, address, Email, cuisineType, password, contactNo) VALUES (4, 'Pasta Palace', '321 Pasta Rd', 'pastapalace@example.com', 'Italian', 'hashed_password4', '4445556666')",
+        "INSERT INTO Vendor (vendorID, name, address, Email, cuisineType, password, contactNo) VALUES (5, 'Drink Depot', '654 Soda Ave', 'drinkdepot@example.com', 'Beverages', 'hashed_password5', '5556667777')",
 
         // DeliveryPersonnel
-        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, contactNo) VALUES (1, 'John', '9998887777')",
-        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, contactNo) VALUES (2, 'Jane', '8887776666')",
-        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, contactNo) VALUES (3, 'Jake', '7776665555')",
-        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, contactNo) VALUES (4, 'Jill', '6665554444')",
-        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, contactNo) VALUES (5, 'Joe', '5554443333')",
+        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, Email, password, contactNo) VALUES (1, 'John', 'john@example.com', 'hashed_password1', '9998887777')",
+        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, Email, password, contactNo) VALUES (2, 'Jane', 'jane@example.com', 'hashed_password2', '8887776666')",
+        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, Email, password, contactNo) VALUES (3, 'Jake', 'jake@example.com', 'hashed_password3', '7776665555')",
+        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, Email, password, contactNo) VALUES (4, 'Jill', 'jill@example.com', 'hashed_password4', '6665554444')",
+        "INSERT INTO DeliveryPersonnel (DeliveryPersonId, name, Email, password, contactNo) VALUES (5, 'Joe', 'joe@example.com', 'hashed_password5', '5554443333')",
 
         // Vehicle
         "INSERT INTO Vehicle (vehicleId, type, registrationNo, availabilityStatus) VALUES (1, 'Car', 'ABC123', 1)",
@@ -257,4 +257,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 </body>
 </html>
+
 

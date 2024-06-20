@@ -107,6 +107,11 @@ Note
 - The executable command for the photos is chmod 644, nothing else renders the photos
 - You have to run the initial setup once before anything else to actually create the tables in your personal Oracle server
 - If you see forbidden resource it is likely because of permission issue, resolve permission issue before moving forward
+- For each new php page created, add this:
+   
+"ini_set('display_errors', 1);
+ ini_set('display_startup_errors', 1);
+ error_reporting(E_ALL); " for better error handling
 
 ---
 ## BUGS

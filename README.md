@@ -106,10 +106,11 @@ Note
 - DO NOT set the executable command for the entire directory at once, it is recursive and WILL be applied to all at once
 - The executable command for the photos is chmod 644, nothing else renders the photos
 - You have to run the initial setup once before anything else to actually create the tables in your personal Oracle server
+- If you see forbidden resource it is likely because of permission issue, resolve permission issue before moving forward
 
 ---
 ## BUGS
-- The backend for the login.php page is still not handled properly
+- The backend for the login.php page is still not handled properly (resolved)
 
 - Give credit to google documentation and Apple documentation for the Google and Apple buttons, implementation still not done, to be followed later
 ---

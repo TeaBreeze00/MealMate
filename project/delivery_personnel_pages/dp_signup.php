@@ -31,7 +31,7 @@ function emailExists($email){
     global $db_conn;
     if (connectToDB()) {
         echo "connect to DB success"; 
-        $result = executePlainSQL("SELECT * FROM CUSTOMER WHERE EMAIL = '{$email}'");
+        $result = executePlainSQL("SELECT * FROM DELIVERYPERSONNEL WHERE EMAIL = '{$email}'");
         if ($result) {
             $row = oci_fetch_array($result, OCI_ASSOC);
             disconnectFromDB();
@@ -61,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (sendVerificationEmail($email, $verificationCode)) {
             $_SESSION['verification_code'] = $verificationCode;
             $_SESSION['email'] = $email;
-            header("Location: authentication.php");
+            header("Location: dp_authentication.php");
             exit();
             } else {
             echo "Failed to send verification email.";
@@ -69,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         } else {
             echo "Email is in our system already. Please login";
-            header("Location: login.php");
+            header("Location: dp_login.php");
         }
     } else {
         echo "Invalid email address.";

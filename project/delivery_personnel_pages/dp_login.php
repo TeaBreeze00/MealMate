@@ -15,7 +15,7 @@ function emailExists($email){
     if (connectToDB()) {
         echo "Connected to DB successfully.<br>"; // Debug message
         $escaped_email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
-        $query = "SELECT * FROM CUSTOMER WHERE EMAIL = :email";
+        $query = "SELECT * FROM DELIVERYPERSONNEL WHERE EMAIL = :email";
         $statement = oci_parse($db_conn, $query);
         oci_bind_by_name($statement, ':email', $escaped_email);
 

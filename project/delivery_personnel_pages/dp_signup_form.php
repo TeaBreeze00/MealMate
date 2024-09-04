@@ -11,7 +11,7 @@ function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-// Function to generate a unique customer ID (this is a simplified example, consider using an auto-increment field instead)
+// Function to generate a unique customer ID
 function generateCustomerId($db_conn) {
     $query = "SELECT MAX(custID) AS maxID FROM Customer";
     $result = executePlainSQL($query);
@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $custID = generateCustomerId($db_conn);
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-            $query = "INSERT INTO Customer (custID, Name, Address, Email, password, PhoneNo) VALUES (:custID, :name, :address, :email, :password, :phoneNo)";
+            $query = "INSERT INTO DELIVERYPERSONNEL (custID, Name, Address, Email, password, PhoneNo) VALUES (:custID, :name, :address, :email, :password, :phoneNo)";
             $statement = oci_parse($db_conn, $query);
             oci_bind_by_name($statement, ':custID', $custID);
             oci_bind_by_name($statement, ':name', $name);

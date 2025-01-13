@@ -6,6 +6,30 @@ error_reporting(E_ALL);
 session_start();
 include "../../utils.php";
 
+require '../../vendor/autoload.php'; // Make sure you've installed SendGrid via Composer
+use SendGrid\Mail\Mail;
+
+function emailExists($email) {
+    global $db_conn;
+    if (!$db_conn) {
+        throw new Exception("Invalid database connection");
+    }
+
+    $query = "SELECT * FROM Vendor WHERE EMAIL = ?";
+    $stmt = mysqli_prepare($db_conn, $query);
+
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $exists = mysqli_num_rows($result) > 0;
+        mysqli_free_result($result);
+        mysqli_stmt_close($stmt);
+        return $exists;
+    } else {
+        throw new Exception("Failed to prepare SQL statement: " . mysqli_error($db_conn));
+    }
+}
 
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
@@ -18,31 +42,27 @@ function generateVerificationCode() {
 function sendVerificationEmail($email, $code) {
     $subject = "Your Verification Code";
     $message = "Your verification code is: " . $code;
-    $headers = "From: shamsetabriz00@gmail.com"; // Replace with your email
 
-    if (mail($email, $subject, $message, $headers)) {
-        return true;
-    } else {
-        return false;
-    }
-}
+    $email_obj = new Mail();
+    $email_obj->setFrom("shamsetabriz00@gmail.com", "MealMate"); // Replace with your verified sender
+    $email_obj->setSubject($subject);
+    $email_obj->addTo($email);
+    $email_obj->addContent("text/plain", $message);
+    $email_obj->addContent("text/html", "<strong>" . $message . "</strong>");
 
-function emailExists($email){
-    global $db_conn;
-    if (connectToDB()) {
-        echo "connect to DB success"; 
-        $result = executePlainSQL("SELECT * FROM DELIVERYPERSONNEL WHERE EMAIL = '{$email}'");
-        if ($result) {
-            $row = oci_fetch_array($result, OCI_ASSOC);
-            disconnectFromDB();
-            return $row != false;
+    $sendgrid = new \SendGrid('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');
+
+    try {
+        $response = $sendgrid->send($email_obj);
+        if ($response->statusCode() == 202) {
+            echo("Email sent successfully");
+            return true;
         } else {
-            echo "Database query failed.";
-            disconnectFromDB();
+            echo("Failed to send email. Status code: " . $response->statusCode());
             return false;
         }
-    } else {
-        echo "Database connection failed.";
+    } catch (Exception $e) {
+        echo("Failed to send email. Error: " . $e->getMessage());
         return false;
     }
 }
@@ -50,35 +70,43 @@ function emailExists($email){
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
 
-    if (isValidEmail($email)) {
+    try {
+        if (!isValidEmail($email)) {
+            throw new Exception("Invalid email address.");
+        }
 
-        if (!emailExists($email)) {
+        if (!connectToDB()) {
+            throw new Exception("Failed to connect to the database. Please try again later.");
+        }
 
-            echo "Email does not exist.";
-            
+        if (emailExists($email)) {
+            // Redirect to login page if email exists
+            header("Location: login.php");
+            exit();
+        } else {
+            // Send 2FA verification code if email doesn't exist
             $verificationCode = generateVerificationCode();
 
             if (sendVerificationEmail($email, $verificationCode)) {
-            $_SESSION['verification_code'] = $verificationCode;
-            $_SESSION['email'] = $email;
-            header("Location: dp_authentication.php");
-            exit();
+                $_SESSION['verification_code'] = password_hash($verificationCode, PASSWORD_DEFAULT);
+                $_SESSION['email'] = $email;
+                header("Location: v_authentication.php");
+                exit();
             } else {
-            echo "Failed to send verification email.";
+                throw new Exception("Failed to send verification email.");
             }
-
-        } else {
-            echo "Email is in our system already. Please login";
-            header("Location: dp_login.php");
         }
-    } else {
-        echo "Invalid email address.";
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        // Log the error
+        error_log($e->getMessage());
+    } finally {
+        if (isset($db_conn)) {
+            mysqli_close($db_conn);
+        }
     }
 }
-
-?> 
-
-
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -118,7 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .top-bar .logo {
-            height: 50px; 
+            height: 50px;
             width: auto;
         }
 
@@ -206,7 +234,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             align-items: center;
             justify-content: center;
         }
-        
+
         .apple-signin-button {
             width: 300px; /* Same width as other buttons */
             height: 40px; /* Same height as other buttons */
@@ -238,12 +266,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="text" name="email/phone" placeholder="Enter email">
         <input type="submit" value="Continue">
     </form>
-    
+
 
     <div class="or-divider">
         <hr><span>or</span><hr>
     </div>
-    
+
 
     <button class="gsi-material-button">
         <div class="gsi-material-button-icon">
@@ -257,10 +285,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <span class="gsi-material-button-contents">Continue with Google</span>
     </button>
-    
+
     <div id="appleid-signin" class="apple-signin-button" data-color="#d3d3d3" data-border="false" data-type="sign-in"></div>
-    </div>
-    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+</div>
+<script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
 
 </div>
 

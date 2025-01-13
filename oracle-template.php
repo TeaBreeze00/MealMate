@@ -1,20 +1,3 @@
-<!-- Test Oracle file for UBC CPSC304
-  Created by Jiemin Zhang
-  Modified by Simona Radu
-  Modified by Jessica Wong (2018-06-22)
-  Modified by Jason Hall (23-09-20)
-  This file shows the very basics of how to execute PHP commands on Oracle.
-  Specifically, it will drop a table, create a table, insert values update
-  values, and then query for values
-  IF YOU HAVE A TABLE CALLED "demoTable" IT WILL BE DESTROYED
-
-  The script assumes you already have a server set up All OCI commands are
-  commands to the Oracle libraries. To get the file to work, you must place it
-  somewhere where your Apache server can run it, and you must rename it to have
-  a ".php" extension. You must also change the username and password on the
-  oci_connect below to be your ORACLE username and password
--->
-
 <?php
 // The preceding tag tells the web server to parse the following text as PHP
 // rather than HTML (the default)
@@ -24,296 +7,242 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-// Set some parameters
-
-// Database access configuration
-$config["dbuser"] = "ora_shams00";			// change "cwl" to your own CWL
-$config["dbpassword"] = "a59148395";	// change to 'a' + your student number
-$config["dbserver"] = "dbhost.students.cs.ubc.ca:1522/stu";
-$db_conn = NULL;	// login credentials are used in connectToDB()
-
-$success = true;	// keep track of errors so page redirects only if there are no errors
-
-$show_debug_alert_messages = False; // show which methods are being triggered (see debugAlertMessage())
-
-// The next tag tells the web server to stop parsing the text as PHP. Use the
-// pair of tags wherever the content switches to PHP
 ?>
 
 <html>
 
 <head>
-	<title>CPSC 304 PHP/Oracle Demonstration</title>
+    <title>CPSC 304 PHP/Oracle Demonstration</title>
 </head>
 
 <body>
-	<h2>Reset</h2>
-	<p>If you wish to reset the table press on the reset button. If this is the first time you're running this page, you MUST use reset</p>
+<h2>Reset</h2>
+<p>If you wish to reset the table press on the reset button. If this is the first time you're running this page, you MUST use reset</p>
 
-	<form method="POST" action="oracle-template.php">
-		<!-- "action" specifies the file or page that will receive the form data for processing. As with this example, it can be this same file. -->
-		<input type="hidden" id="resetTablesRequest" name="resetTablesRequest">
-		<p><input type="submit" value="Reset" name="reset"></p>
-	</form>
+<form method="POST" action="oracle-template.php">
+    <input type="hidden" id="resetTablesRequest" name="resetTablesRequest">
+    <p><input type="submit" value="Reset" name="reset"></p>
+</form>
 
-	<hr />
+<hr />
 
-	<h2>Insert Values into DemoTable</h2>
-	<form method="POST" action="oracle-template.php">
-		<input type="hidden" id="insertQueryRequest" name="insertQueryRequest">
-		Number: <input type="text" name="insNo"> <br /><br />
-		Name: <input type="text" name="insName"> <br /><br />
+<h2>Insert Values into DemoTable</h2>
+<form method="POST" action="oracle-template.php">
+    <input type="hidden" id="insertQueryRequest" name="insertQueryRequest">
+    Number: <input type="text" name="insNo"> <br /><br />
+    Name: <input type="text" name="insName"> <br /><br />
+    <input type="submit" value="Insert" name="insertSubmit"></p>
+</form>
 
-		<input type="submit" value="Insert" name="insertSubmit"></p>
-	</form>
+<hr />
 
-	<hr />
+<h2>Update Name in DemoTable</h2>
+<p>The values are case-sensitive and if you enter the wrong case, the update statement will not do anything.</p>
 
-	<h2>Update Name in DemoTable</h2>
-	<p>The values are case sensitive and if you enter in the wrong case, the update statement will not do anything.</p>
+<form method="POST" action="oracle-template.php">
+    <input type="hidden" id="updateQueryRequest" name="updateQueryRequest">
+    Old Name: <input type="text" name="oldName"> <br /><br />
+    New Name: <input type="text" name="newName"> <br /><br />
+    <input type="submit" value="Update" name="updateSubmit"></p>
+</form>
 
-	<form method="POST" action="oracle-template.php">
-		<input type="hidden" id="updateQueryRequest" name="updateQueryRequest">
-		Old Name: <input type="text" name="oldName"> <br /><br />
-		New Name: <input type="text" name="newName"> <br /><br />
+<hr />
 
-		<input type="submit" value="Update" name="updateSubmit"></p>
-	</form>
+<h2>Count the Tuples in DemoTable</h2>
+<form method="GET" action="oracle-template.php">
+    <input type="hidden" id="countTupleRequest" name="countTupleRequest">
+    <input type="submit" name="countTuples"></p>
+</form>
 
-	<hr />
+<hr />
 
-	<h2>Count the Tuples in DemoTable</h2>
-	<form method="GET" action="oracle-template.php">
-		<input type="hidden" id="countTupleRequest" name="countTupleRequest">
-		<input type="submit" name="countTuples"></p>
-	</form>
+<h2>Display Tuples in DemoTable</h2>
+<form method="GET" action="oracle-template.php">
+    <input type="hidden" id="displayTuplesRequest" name="displayTuplesRequest">
+    <input type="submit" name="displayTuples"></p>
+</form>
 
-	<hr />
+<?php
+$success = True;
+$db_conn = 0;
+$show_debug_alert_messages = False;
 
-	<h2>Display Tuples in DemoTable</h2>
-	<form method="GET" action="oracle-template.php">
-		<input type="hidden" id="displayTuplesRequest" name="displayTuplesRequest">
-		<input type="submit" name="displayTuples"></p>
-	</form>
+$config = array(
+    "dbserver" => "127.0.0.1",
+    "dbuser" => "root",
+    "dbpassword" => "",
+    "dbname" => "MealMate",
+    "port" => 3306
+);
 
+function debugAlertMessage($message) {
+    global $show_debug_alert_messages;
 
-	<?php
-	// The following code will be parsed as PHP
+    if ($show_debug_alert_messages) {
+        echo "<script type='text/javascript'>alert('" . $message . "');</script>";
+    }
+}
 
-	function debugAlertMessage($message)
-	{
-		global $show_debug_alert_messages;
+function connectToDB() {
+    global $db_conn, $config;
 
-		if ($show_debug_alert_messages) {
-			echo "<script type='text/javascript'>alert('" . $message . "');</script>";
-		}
-	}
+    $db_conn = mysqli_connect(
+        $config["dbserver"],
+        $config["dbuser"],
+        $config["dbpassword"],
+        $config["dbname"],
+        $config["port"]
+    );
 
-	function executePlainSQL($cmdstr)
-	{ //takes a plain (no bound variables) SQL command and executes it
-		//echo "<br>running ".$cmdstr."<br>";
-		global $db_conn, $success;
+    if ($db_conn) {
+        debugAlertMessage("Database is Connected");
+        return $db_conn;
+    } else {
+        debugAlertMessage("Cannot connect to Database");
+        echo "Error: " . mysqli_connect_error();
+        return null;
+    }
+}
 
-		$statement = oci_parse($db_conn, $cmdstr);
-		//There are a set of comments at the end of the file that describe some of the OCI specific functions and how they work
+function disconnectFromDB() {
+    global $db_conn;
 
-		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
-			$e = OCI_Error($db_conn); // For oci_parse errors pass the connection handle
-			echo htmlentities($e['message']);
-			$success = False;
-		}
+    debugAlertMessage("Disconnect from Database");
+    mysqli_close($db_conn);
+}
 
-		$r = oci_execute($statement, OCI_DEFAULT);
-		if (!$r) {
-			echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
-			$e = oci_error($statement); // For oci_execute errors pass the statementhandle
-			echo htmlentities($e['message']);
-			$success = False;
-		}
+function executePlainSQL($cmdstr) {
+    global $db_conn, $success;
 
-		return $statement;
-	}
+    $result = mysqli_query($db_conn, $cmdstr);
 
-	function executeBoundSQL($cmdstr, $list)
-	{
-		/* Sometimes the same statement will be executed several times with different values for the variables involved in the query.
-		In this case you don't need to create the statement several times. Bound variables cause a statement to only be
-		parsed once and you can reuse the statement. This is also very useful in protecting against SQL injection.
-		See the sample code below for how this function is used */
+    if (!$result) {
+        echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+        $success = False;
+        echo mysqli_error($db_conn);
+    }
 
-		global $db_conn, $success;
-		$statement = oci_parse($db_conn, $cmdstr);
+    return $result;
+}
 
-		if (!$statement) {
-			echo "<br>Cannot parse the following command: " . $cmdstr . "<br>";
-			$e = OCI_Error($db_conn);
-			echo htmlentities($e['message']);
-			$success = False;
-		}
+function executeBoundSQL($cmdstr, $list) {
+    global $db_conn, $success;
+    $stmt = mysqli_prepare($db_conn, $cmdstr);
 
-		foreach ($list as $tuple) {
-			foreach ($tuple as $bind => $val) {
-				//echo $val;
-				//echo "<br>".$bind."<br>";
-				oci_bind_by_name($statement, $bind, $val);
-				unset($val); //make sure you do not remove this. Otherwise $val will remain in an array object wrapper which will not be recognized by Oracle as a proper datatype
-			}
+    if (!$stmt) {
+        echo "<br>Cannot prepare the following command: " . $cmdstr . "<br>";
+        $success = False;
+        echo mysqli_error($db_conn);
+        return;
+    }
 
-			$r = oci_execute($statement, OCI_DEFAULT);
-			if (!$r) {
-				echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
-				$e = OCI_Error($statement); // For oci_execute errors, pass the statementhandle
-				echo htmlentities($e['message']);
-				echo "<br>";
-				$success = False;
-			}
-		}
-	}
+    foreach ($list as $tuple) {
+        $params = array();
+        $types = "";
+        foreach ($tuple as $key => $val) {
+            $params[] = $val;
+            if (is_int($val)) {
+                $types .= "i";
+            } elseif (is_float($val)) {
+                $types .= "d";
+            } else {
+                $types .= "s";
+            }
+        }
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
+        $result = mysqli_stmt_execute($stmt);
+        if (!$result) {
+            echo "<br>Cannot execute the following command: " . $cmdstr . "<br>";
+            $success = False;
+            echo mysqli_error($db_conn);
+        }
+    }
+    mysqli_stmt_close($stmt);
+}
 
-	function printResult($result)
-	{ //prints results from a select statement
-		echo "<br>Retrieved data from table demoTable:<br>";
-		echo "<table>";
-		echo "<tr><th>ID</th><th>Name</th></tr>";
+function printResult($result) {
+    echo "<br>Retrieved data from table demoTable:<br>";
+    echo "<table>";
+    echo "<tr><th>ID</th><th>Name</th></tr>";
 
-		while ($row = OCI_Fetch_Array($result, OCI_ASSOC)) {
-			echo "<tr><td>" . $row["ID"] . "</td><td>" . $row["NAME"] . "</td></tr>"; //or just use "echo $row[0]"
-		}
+    while ($row = mysqli_fetch_assoc($result)) {
+        echo "<tr><td>" . $row["id"] . "</td><td>" . $row["name"] . "</td></tr>";
+    }
 
-		echo "</table>";
-	}
+    echo "</table>";
+}
 
-	function connectToDB()
-	{
-		global $db_conn;
-		global $config;
+function handleResetRequest() {
+    global $db_conn;
+    executePlainSQL("DROP TABLE IF EXISTS demoTable");
+    echo "<br>Creating new table<br>";
+    executePlainSQL("CREATE TABLE demoTable (id INT PRIMARY KEY, name VARCHAR(30))");
+    mysqli_commit($db_conn);
+    echo "Reset successful.";
+}
 
-		// Your username is ora_(CWL_ID) and the password is a(student number). For example,
-		// ora_platypus is the username and a12345678 is the password.
-		// $db_conn = oci_connect("ora_cwl", "a12345678", "dbhost.students.cs.ubc.ca:1522/stu");
-		$db_conn = oci_connect($config["dbuser"], $config["dbpassword"], $config["dbserver"]);
+function handleInsertRequest() {
+    global $db_conn;
+    $id = $_POST['insNo'];
+    $name = $_POST['insName'];
+    $query = "INSERT INTO demoTable (id, name) VALUES (?, ?)";
+    $list = array(array($id, $name));
+    executeBoundSQL($query, $list);
+    mysqli_commit($db_conn);
+    echo "Insertion successful: ID=$id, Name=$name.";
+}
 
-		if ($db_conn) {
-			debugAlertMessage("Database is Connected");
-			return true;
-		} else {
-			debugAlertMessage("Cannot connect to Database");
-			$e = OCI_Error(); // For oci_connect errors pass no handle
-			echo htmlentities($e['message']);
-			return false;
-		}
-	}
+function handleUpdateRequest() {
+    global $db_conn;
+    $oldName = $_POST['oldName'];
+    $newName = $_POST['newName'];
+    $query = "UPDATE demoTable SET name=? WHERE name=?";
+    $list = array(array($newName, $oldName));
+    executeBoundSQL($query, $list);
+    mysqli_commit($db_conn);
+    echo "Update successful: Old Name=$oldName, New Name=$newName.";
+}
 
-	function disconnectFromDB()
-	{
-		global $db_conn;
+function handleCountRequest() {
+    global $db_conn;
+    $result = executePlainSQL("SELECT COUNT(*) AS count FROM demoTable");
+    if ($row = mysqli_fetch_assoc($result)) {
+        echo "<br>The number of tuples in demoTable: " . $row['count'] . "<br>";
+    }
+}
 
-		debugAlertMessage("Disconnect from Database");
-		oci_close($db_conn);
-	}
+function handleDisplayRequest() {
+    global $db_conn;
+    $result = executePlainSQL("SELECT * FROM demoTable");
+    printResult($result);
+}
 
-	function handleUpdateRequest()
-	{
-		global $db_conn;
+function handlePOSTRequest() {
+    if (isset($_POST['resetTablesRequest'])) {
+        handleResetRequest();
+    } elseif (isset($_POST['insertQueryRequest'])) {
+        handleInsertRequest();
+    } elseif (isset($_POST['updateQueryRequest'])) {
+        handleUpdateRequest();
+    }
+}
 
-		$old_name = $_POST['oldName'];
-		$new_name = $_POST['newName'];
+function handleGETRequest() {
+    if (isset($_GET['countTupleRequest'])) {
+        handleCountRequest();
+    } elseif (isset($_GET['displayTuplesRequest'])) {
+        handleDisplayRequest();
+    }
+}
 
-		// you need the wrap the old name and new name values with single quotations
-		executePlainSQL("UPDATE demoTable SET name='" . $new_name . "' WHERE name='" . $old_name . "'");
-		oci_commit($db_conn);
-	}
-
-	function handleResetRequest()
-	{
-		global $db_conn;
-		// Drop old table
-		executePlainSQL("DROP TABLE demoTable");
-
-		// Create new table
-		echo "<br> creating new table <br>";
-		executePlainSQL("CREATE TABLE demoTable (id int PRIMARY KEY, name char(30))");
-		oci_commit($db_conn);
-	}
-
-	function handleInsertRequest()
-	{
-		global $db_conn;
-
-		//Getting the values from user and insert data into the table
-		$tuple = array(
-			":bind1" => $_POST['insNo'],
-			":bind2" => $_POST['insName']
-		);
-
-		$alltuples = array(
-			$tuple
-		);
-
-		executeBoundSQL("insert into demoTable values (:bind1, :bind2)", $alltuples);
-		oci_commit($db_conn);
-	}
-
-	function handleCountRequest()
-	{
-		global $db_conn;
-
-		$result = executePlainSQL("SELECT Count(*) FROM demoTable");
-
-		if (($row = oci_fetch_row($result)) != false) {
-			echo "<br> The number of tuples in demoTable: " . $row[0] . "<br>";
-		}
-	}
-
-	function handleDisplayRequest()
-	{
-		global $db_conn;
-		$result = executePlainSQL("SELECT * FROM demoTable");
-		printResult($result);
-	}
-
-	// HANDLE ALL POST ROUTES
-	// A better coding practice is to have one method that reroutes your requests accordingly. It will make it easier to add/remove functionality.
-	function handlePOSTRequest()
-	{
-		if (connectToDB()) {
-			if (array_key_exists('resetTablesRequest', $_POST)) {
-				handleResetRequest();
-			} else if (array_key_exists('updateQueryRequest', $_POST)) {
-				handleUpdateRequest();
-			} else if (array_key_exists('insertQueryRequest', $_POST)) {
-				handleInsertRequest();
-			}
-
-			disconnectFromDB();
-		}
-	}
-
-	// HANDLE ALL GET ROUTES
-	// A better coding practice is to have one method that reroutes your requests accordingly. It will make it easier to add/remove functionality.
-	function handleGETRequest()
-	{
-		if (connectToDB()) {
-			if (array_key_exists('countTuples', $_GET)) {
-				handleCountRequest();
-			} elseif (array_key_exists('displayTuples', $_GET)) {
-				handleDisplayRequest();
-			}
-
-			disconnectFromDB();
-		}
-	}
-
-	if (isset($_POST['reset']) || isset($_POST['updateSubmit']) || isset($_POST['insertSubmit'])) {
-		handlePOSTRequest();
-	} else if (isset($_GET['countTupleRequest']) || isset($_GET['displayTuplesRequest'])) {
-		handleGETRequest();
-	}
-
-	// End PHP parsing and send the rest of the HTML content
-	?>
+if (connectToDB()) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        handlePOSTRequest();
+    } elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        handleGETRequest();
+    }
+    disconnectFromDB();
+}
+?>
 </body>
-
 </html>

@@ -6,64 +6,69 @@ error_reporting(E_ALL);
 session_start();
 include "../../utils.php";
 
+require '../../vendor/autoload.php'; // Make sure you've installed SendGrid via Composer
+use SendGrid\Mail\Mail;
+
+function emailExists($email) {
+    global $db_conn;
+    if (!$db_conn) {
+        throw new Exception("Invalid database connection");
+    }
+
+    $query = "SELECT * FROM CUSTOMER WHERE EMAIL = ?";
+    $stmt = mysqli_prepare($db_conn, $query);
+
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $exists = mysqli_num_rows($result) > 0;
+        mysqli_free_result($result);
+        mysqli_stmt_close($stmt);
+        return $exists;
+    } else {
+        throw new Exception("Failed to prepare SQL statement: " . mysqli_error($db_conn));
+    }
+}
+
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-function emailExists($email){
-    global $db_conn;
-    if (connectToDB()) {
-        echo "Connected to DB successfully.<br>"; // Debug message
-        $escaped_email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
-        $query = "SELECT * FROM DELIVERYPERSONNEL WHERE EMAIL = :email";
-        $statement = oci_parse($db_conn, $query);
-        oci_bind_by_name($statement, ':email', $escaped_email);
-
-        if (oci_execute($statement)) {
-            if ($row = oci_fetch_array($statement, OCI_ASSOC)) {
-                echo "Email exists in the database.<br>"; // Debug message
-                oci_free_statement($statement);
-                disconnectFromDB();
-                return true;
-            } else {
-                echo "Email does not exist in the database.<br>"; // Debug message
-                oci_free_statement($statement);
-                disconnectFromDB();
-                return false;
-            }
-        } else {
-            echo "Database query execution failed.<br>"; // Debug message
-            oci_free_statement($statement);
-            disconnectFromDB();
-            return false;
-        }
-    } else {
-        echo "Database connection failed.<br>"; // Debug message
-        return false;
-    }
-}
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
-    
-    echo "Form submitted.<br>"; // Debug message
-    echo "Email entered: $email<br>"; // Debug message
 
-    if (isValidEmail($email)) {
-        echo "Email is valid.<br>"; // Debug message
+    try {
+        if (!isValidEmail($email)) {
+            throw new Exception("Invalid email address.");
+        }
+
+        if (!connectToDB()) {
+            throw new Exception("Failed to connect to the database. Please try again later.");
+        }
 
         if (emailExists($email)) {
-            echo "Redirecting to user homepage.<br>"; // Debug message
+            // Redirect to user homepage if email exists
+            $_SESSION['email'] = $email;
             header("Location: ../user_pages/user_homepage.php");
             exit();
         } else {
-            echo "Email does not exist.<br>"; // Debug message
+            // Redirect to signup page if email does not exist
+            header("Location: signup.php");
+            exit();
         }
-    } else {
-        echo "Invalid email address.<br>"; // Debug message
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        // Log the error
+        error_log($e->getMessage());
+    } finally {
+        if (isset($db_conn)) {
+            mysqli_close($db_conn);
+        }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,10 +105,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         .top-bar .logo {
-            height: 50px; 
+            height: 50px;
             width: auto;
         }
-        
+
         .container {
             display: flex;
             flex-direction: column;
@@ -227,7 +232,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
 </body>
 </html>
-
-
-
-

@@ -1,29 +1,58 @@
 <?php
 session_start();
-include "../utils.php";
-
-
-session_start();
+include "../../utils.php";
 
 function isValidVerificationCode($verification_code) {
-  if (!isset($_SESSION['verification_code'])) {
-    return false; 
-  }
-  $generated_code = $_SESSION['verification_code'];
-  return $generated_code == $verification_code;
+    if (!isset($_SESSION['verification_code'])) {
+        return false;
+    }
+    $hashed_code = $_SESSION['verification_code'];
+    return password_verify($verification_code, $hashed_code);
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $verification_code = $_POST['verification_code']; 
+    // Check if the verification code and email are set
+    if (!isset($_SESSION['email'])) {
+        echo "Session expired or email not set. Please try again.";
+        exit;
+    }
 
-  if (isValidVerificationCode($verification_code)) {
-    header("Location: signup_form.php");
-    exit; 
-  } else {
-    echo "Incorrect! Please enter the valid verification code";
-  }
+    $verification_code = $_POST['verification_code'];
+
+    if (isValidVerificationCode($verification_code)) {
+        // Redirect to signup form if the verification code is correct
+        header("Location: signup_form.php");
+        exit;
+    } else {
+        // Error message for incorrect verification code
+        $error_message = "Incorrect! Please enter a valid verification code.";
+    }
 }
 ?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Code</title>
+</head>
+<body>
+<h1>Enter Verification Code</h1>
+<form method="POST" action="">
+    <label for="verification_code">Verification Code:</label>
+    <input type="text" name="verification_code" id="verification_code" required>
+    <button type="submit">Verify</button>
+</form>
+<?php
+// Display error message if it exists
+if (isset($error_message)) {
+    echo "<p style='color: red;'>" . htmlspecialchars($error_message) . "</p>";
+}
+?>
+</body>
+</html>
+
 
 <html>
 

@@ -6,64 +6,108 @@ error_reporting(E_ALL);
 session_start();
 include "../../utils.php";
 
+require '../../vendor/autoload.php'; // Make sure you've installed SendGrid via Composer
+use SendGrid\Mail\Mail;
+
+function emailExists($email) {
+    global $db_conn;
+    if (!$db_conn) {
+        throw new Exception("Invalid database connection");
+    }
+
+    $query = "SELECT * FROM DeliveryPersonnel WHERE EMAIL = ?";
+    $stmt = mysqli_prepare($db_conn, $query);
+
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $exists = mysqli_num_rows($result) > 0;
+        mysqli_free_result($result);
+        mysqli_stmt_close($stmt);
+        return $exists;
+    } else {
+        throw new Exception("Failed to prepare SQL statement: " . mysqli_error($db_conn));
+    }
+}
+
 function isValidEmail($email) {
     return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-function emailExists($email){
-    global $db_conn;
-    if (connectToDB()) {
-        echo "Connected to DB successfully.<br>"; // Debug message
-        $escaped_email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
-        $query = "SELECT * FROM CUSTOMER WHERE EMAIL = :email";
-        $statement = oci_parse($db_conn, $query);
-        oci_bind_by_name($statement, ':email', $escaped_email);
+function generateVerificationCode() {
+    return rand(100000, 999999);
+}
 
-        if (oci_execute($statement)) {
-            if ($row = oci_fetch_array($statement, OCI_ASSOC)) {
-                echo "Email exists in the database.<br>"; // Debug message
-                oci_free_statement($statement);
-                disconnectFromDB();
-                return true;
-            } else {
-                echo "Email does not exist in the database.<br>"; // Debug message
-                oci_free_statement($statement);
-                disconnectFromDB();
-                return false;
-            }
+function sendVerificationEmail($email, $code) {
+    $subject = "Your Verification Code";
+    $message = "Your verification code is: " . $code;
+
+    $email_obj = new Mail();
+    $email_obj->setFrom("shamsetabriz00@gmail.com", "MealMate"); // Replace with your verified sender
+    $email_obj->setSubject($subject);
+    $email_obj->addTo($email);
+    $email_obj->addContent("text/plain", $message);
+    $email_obj->addContent("text/html", "<strong>" . $message . "</strong>");
+
+    $sendgrid = new \SendGrid('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');
+
+    try {
+        $response = $sendgrid->send($email_obj);
+        if ($response->statusCode() == 202) {
+            echo("Email sent successfully");
+            return true;
         } else {
-            echo "Database query execution failed.<br>"; // Debug message
-            oci_free_statement($statement);
-            disconnectFromDB();
+            echo("Failed to send email. Status code: " . $response->statusCode());
             return false;
         }
-    } else {
-        echo "Database connection failed.<br>"; // Debug message
+    } catch (Exception $e) {
+        echo("Failed to send email. Error: " . $e->getMessage());
         return false;
     }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email/phone'];
-    
-    echo "Form submitted.<br>"; // Debug message
-    echo "Email entered: $email<br>"; // Debug message
 
-    if (isValidEmail($email)) {
-        echo "Email is valid.<br>"; // Debug message
+    try {
+        if (!isValidEmail($email)) {
+            throw new Exception("Invalid email address.");
+        }
+
+        if (!connectToDB()) {
+            throw new Exception("Failed to connect to the database. Please try again later.");
+        }
 
         if (emailExists($email)) {
-            echo "Redirecting to user homepage.<br>"; // Debug message
-            header("Location: ../user_pages/user_homepage.php");
+            // Redirect to login page if email exists
+            header("Location: dp_login.php");
             exit();
         } else {
-            echo "Email does not exist.<br>"; // Debug message
+            // Send 2FA verification code if email doesn't exist
+            $verificationCode = generateVerificationCode();
+
+            if (sendVerificationEmail($email, $verificationCode)) {
+                $_SESSION['verification_code'] = password_hash($verificationCode, PASSWORD_DEFAULT);
+                $_SESSION['email'] = $email;
+                header("Location: dp_authentication.php");
+                exit();
+            } else {
+                throw new Exception("Failed to send verification email.");
+            }
         }
-    } else {
-        echo "Invalid email address.<br>"; // Debug message
+    } catch (Exception $e) {
+        echo "Error: " . $e->getMessage();
+        // Log the error
+        error_log($e->getMessage());
+    } finally {
+        if (isset($db_conn)) {
+            mysqli_close($db_conn);
+        }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,10 +115,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MealMate</title>
     <link rel="stylesheet" href="../css/reset.css">
+
     <meta name="appleid-signin-client-id" content="[CLIENT_ID]">
     <meta name="appleid-signin-scope" content="[SCOPES]">
     <meta name="appleid-signin-redirect-uri" content="[REDIRECT_URI]">
     <meta name="appleid-signin-state" content="[STATE]">
+
     <style>
         body, html {
             margin: 0;
@@ -103,39 +149,44 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             height: 50px; 
             width: auto;
         }
-        
+
         .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-top: 80px;
+            margin-top: 80px; /* Adjust to position below the top bar */
             padding: 20px;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
         .or-divider {
-            width: 300px;
+            width: 300px; /* Same width as buttons */
             display: flex;
             align-items: center;
             text-align: center;
             margin: 20px 0;
         }
+
         .or-divider hr {
             flex: 1;
             border: none;
             border-top: 1px solid #ccc;
             margin: 0;
         }
+
         .or-divider span {
             padding: 0 10px;
             color: #999;
         }
+
         .container p {
             margin: 0 0 20px;
             text-align: left;
-            width: 300px;
+            width: 300px; /* Align text with input and button */
         }
+
         .container input[type="text"] {
             width: 300px;
             height: 40px;
@@ -143,46 +194,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             margin-bottom: 10px;
             border: none;
             background-color: #d3d3d3;
-            border-radius: 8px;
+            border-radius: 8px; /* Smoother border */
             box-sizing: border-box;
         }
+
         .container input[type="submit"] {
-            width: 300px;
+            width: 300px; /* Same width as the text box */
             height: 40px;
             padding: 10px;
             background-color: black;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 8px; /* Smoother border */
             cursor: pointer;
             font-size: 14px;
             box-sizing: border-box;
             margin-bottom: 10px;
         }
+
         .gsi-material-button {
-            width: 300px;
+            width: 300px; /* Same width as the text box and submit button */
             height: 40px;
             padding: 0 10px;
             background-color: #d3d3d3;
             border: none;
             color: black;
-            border-radius: 8px;
+            border-radius: 8px; /* Smoother border */
             cursor: pointer;
             font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-sizing: border-box;
-            gap: 10px;
+            gap: 10px; /* Space between icon and text */
         }
+
         .gsi-material-button .gsi-material-button-icon {
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        
         .apple-signin-button {
-            width: 300px;
-            height: 40px;
+            width: 300px; /* Same width as other buttons */
+            height: 40px; /* Same height as other buttons */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -193,6 +248,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             box-sizing: border-box;
             margin-top: 10px;
         }
+
     </style>
 </head>
 <body>
@@ -201,15 +257,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <img src="../diagrams/logo.png" alt="Logo" class="logo">
 </div>
 
+
 <div class="container">
     <p>What's your phone number or email?</p>
+
+
     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <input type="text" name="email/phone" placeholder="Enter email">
         <input type="submit" value="Continue">
     </form>
+    
+
     <div class="or-divider">
         <hr><span>or</span><hr>
     </div>
+    
+
     <button class="gsi-material-button">
         <div class="gsi-material-button-icon">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" xmlns:xlink="http://www.w3.org/1999/xlink" style="display: block; height: 24px; width: 24px;">
@@ -222,12 +285,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
         <span class="gsi-material-button-contents">Continue with Google</span>
     </button>
+    
     <div id="appleid-signin" class="apple-signin-button" data-color="#d3d3d3" data-border="false" data-type="sign-in"></div>
+    </div>
+    <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+
 </div>
-<script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+
 </body>
 </html>
-
-
-
-
